@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo com Seguidores</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      position: relative;
+      background: #f0f0f0;
+      overflow: hidden;
+    }
+
+    button {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: #3498db;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+    }
+
+    #jogador {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: blue;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .seguidor {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: red;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    h1 {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      margin: 0;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="tamanho">Cliques: 0</h1>
+  <div id="controls">
+    <input type="text" id="palavraInput" placeholder="Digite uma palavra">
+    <button onclick="criarBotoes()">Gerar</button>
+  </div>
+
+  <div id="jogador"></div>
+
+  <script>
+    class Palavra {
+      constructor(texto) {
+        this.texto = texto;
+        this.letras = texto.split("");
+      }
+    }
+
+    class Jogador {
+      constructor(velocidade = 5, texto = "Palavra") {
+        this.velocidade = velocidade;
+        this.texto = texto;
+        this.tamanho = 0;
+        this.posicao = { x: 0, y: 0 };
+        this.direcao = null;
+      }
+
+      mover() {
+        if (!this.direcao) return;
+        if (this.direcao === "up") this.posicao.y -= this.velocidade;
+        if (this.direcao === "down") this.posicao.y += this.velocidade;
+        if (this.direcao === "left") this.posicao.x -= this.velocidade;
+        if (this.direcao === "right") this.posicao.x += this.velocidade;
+      }
+    }
+
+    const jogador = new Jogador();
+    const divJogador = document.getElementById("jogador");
+
+    let seguidores = []; // divs dos seguidores
+    let history = [];    // rastro do jogador
+
+    // Atualiza posição do jogador na tela
+    function atualizarTela() {
+      divJogador.style.left = jogador.posicao.x + "px";
+      divJogador.style.top = jogador.posicao.y + "px";
+    }
+
+    // Detecta colisão entre jogador e letras
+    function checarColisoes() {
+      const jogadorRect = divJogador.getBoundingClientRect();
+      const botoes = document.querySelectorAll('button:not(#controls button)');
+
+      botoes.forEach(botao => {
+        const botaoRect = botao.getBoundingClientRect();
+        if (
+          jogadorRect.left < botaoRect.right &&
+          jogadorRect.right > botaoRect.left &&
+          jogadorRect.top < botaoRect.bottom &&
+          jogadorRect.bottom > botaoRect.top
+        ) {
+          // Colisão detectada
+          jogador.tamanho++;
+          document.getElementById('tamanho').textContent = `Cliques: ${jogador.tamanho}`;
+          botao.remove();
+          criarSeguidor(); // cria um novo seguidor sempre que aumenta tamanho
+        }
+      });
+    }
+
+    // Cria seguidor novo
+    function criarSeguidor() {
+      const seg = document.createElement("div");
+      seg.classList.add("seguidor");
+      document.body.appendChild(seg);
+      seguidores.push(seg);
+    }
+
+    // Loop contínuo de movimento e colisão
+    function loop() {
+      jogador.mover();
+      atualizarTela();
+      checarColisoes();
+
+      // salva a posição atual do jogador no histórico
+      history.push({ x: jogador.posicao.x, y: jogador.posicao.y });
+      if (history.length > 1000) history.shift();
+
+      // seguidores seguem com delay
+      seguidores.forEach((seg, index) => {
+        let delay = (index + 1) * 20; // quanto maior, mais atrás
+        if (history.length > delay) {
+          let pos = history[history.length - delay];
+          seg.style.left = pos.x + "px";
+          seg.style.top = pos.y + "px";
+        }
+      });
+
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // Detecta teclas do teclado -> define a direção
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp") jogador.direcao = "up";
+      if (event.key === "ArrowDown") jogador.direcao = "down";
+      if (event.key === "ArrowLeft") jogador.direcao = "left";
+      if (event.key === "ArrowRight") jogador.direcao = "right";
+    });
+
+    // Função para criar botões aleatórios
+    function criarBotoes() {
+      const antigos = document.querySelectorAll('button:not(#controls button)');
+      antigos.forEach(b => b.remove());
+
+      const input = document.getElementById('palavraInput').value.trim();
+      if (!input) return;
+
+      const palavra = new Palavra(input);
+      const letras = palavra.letras;
+
+      const bodyWidth = window.innerWidth;
+      const bodyHeight = window.innerHeight;
+
+      letras.forEach(letra => {
+        const botao = document.createElement('button');
+        botao.textContent = letra;
+
+        const x = Math.random() * (bodyWidth - 60);
+        const y = 50 + Math.random() * (bodyHeight - 60 - 50);
+        botao.style.left = x + 'px';
+        botao.style.top = y + 'px';
+
+        document.body.appendChild(botao);
+      });
+    }
+  </script>
+</body>
+</html>
