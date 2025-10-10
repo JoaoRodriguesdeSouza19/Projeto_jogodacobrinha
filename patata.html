@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogador</title>
+  <style>
+    #jogador {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: blue;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="jogador"></div>
+
+  <script>
+    class Jogador {
+      constructor(velocidade = 20, tamanho = 4, texto = "Palavra") {
+        this.velocidade = velocidade;
+        this.tamanho = tamanho;
+        this.texto = texto;
+        this.posicao = { x: 0, y: 0 };
+      }
+
+      mover(eixo) {
+        if (this.tamanho < this.texto.length) {
+          this.posicao[eixo] += this.velocidade;
+        }
+      }
+    }
+
+    const jogador = new Jogador(20, 2, "Palavra");
+    const divJogador = document.getElementById("jogador");
+
+    // Atualiza posição na tela
+    function atualizarTela() {
+      divJogador.style.left = jogador.posicao.x + "px";
+      divJogador.style.top = jogador.posicao.y + "px";
+    }
+
+    // Detecta teclas do teclado
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp") jogador.posicao.y -= jogador.velocidade;
+      if (event.key === "ArrowDown") jogador.posicao.y += jogador.velocidade;
+      if (event.key === "ArrowLeft") jogador.posicao.x -= jogador.velocidade;
+      if (event.key === "ArrowRight") jogador.posicao.x += jogador.velocidade;
+
+      atualizarTela();
+    });
+
+    atualizarTela();
+  </script>
+</body>
+</html>

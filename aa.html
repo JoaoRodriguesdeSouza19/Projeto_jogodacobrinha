@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Caixas com Delay</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #f0f0f0;
+      overflow: hidden;
+    }
+    .box {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      border-radius: 6px;
+      cursor: grab;
+    }
+    .box1 { background: black; z-index: 10; }
+    .box2 { background: red; }
+    .box3 { background: blue; }
+    .box4 { background: green; }
+    .box5 { background: orange; }
+  </style>
+</head>
+<body>
+  <div class="box box1" id="box1">1</div>
+  <div class="box box2" id="box2">2</div>
+  <div class="box box3" id="box3">3</div>
+  <div class="box box4" id="box4">4</div>
+  <div class="box box5" id="box5">5</div>
+
+  <script>
+    const box1 = document.getElementById("box1");
+    const boxes = [
+      document.getElementById("box2"),
+      document.getElementById("box3"),
+      document.getElementById("box4"),
+      document.getElementById("box5")
+    ];
+
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    // Guardar posições para "rastro"
+    let history = [];
+
+    // Arrastar quadrado 1
+    box1.addEventListener("mousedown", e => {
+      isDragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+      box1.style.cursor = "grabbing";
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+      box1.style.cursor = "grab";
+    });
+
+    document.addEventListener("mousemove", e => {
+      if (isDragging) {
+        let x = e.pageX - offsetX;
+        let y = e.pageY - offsetY;
+        box1.style.left = x + "px";
+        box1.style.top = y + "px";
+
+        // guarda a posição do quadrado 1
+        history.push({ x, y });
+
+        // limitar tamanho do histórico para não crescer infinito
+        if (history.length > 500) history.shift();
+      }
+    });
+
+    // Fazer os outros seguirem com delay
+    function follow() {
+      boxes.forEach((box, index) => {
+        let delay = (index + 1) * 10; // quanto maior o número, maior o delay
+        if (history.length > delay) {
+          let pos = history[history.length - delay];
+          box.style.left = pos.x + "px";
+          box.style.top = pos.y + "px";
+        }
+      });
+      requestAnimationFrame(follow);
+    }
+
+    follow();
+  </script>
+</body>
+</html>
